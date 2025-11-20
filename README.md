@@ -18,7 +18,7 @@
 ---
 
 ## 🗂️ 프로젝트 구조
-
+```plaintext
 EchoesOfValor/
 │
 ├── main.c
