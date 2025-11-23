@@ -161,9 +161,9 @@ int LoadEquipment(EquipmentData* outEquip, int equipId) {
     );
     outEquip->slot = (EquipmentSlot)slotTemp;
 
-    fgetc(fp);
+    fgetc(fp);  // 개행 제거
     fgets(outEquip->lore, sizeof(outEquip->lore), fp);
-    outEquip->lore[strcspp(outEquip->lore, "\n")] = '\0';
+    outEquip->lore[strcspn(outEquip->lore, "\n")] = '\0';  // 오타 수정됨
 
     fclose(fp);
     return 1;

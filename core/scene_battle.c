@@ -2,8 +2,9 @@
 #include <string.h>
 #include "../system/utils.h"
 #include "scene_battle.h"
+#include "game.h"
 
-void ShowBattle(const char* name) {
+void ShowBattle() {
     char input[32];
 
     while (1) {
@@ -18,7 +19,10 @@ void ShowBattle(const char* name) {
         printf(" [ 3 ] 방어하기 (미구현)\n");
         printf(" [ 4 ] 도망가기\n");
         printf("=================================================\n");
-        printf(" %s HP 100/100 | 슬라임 HP 50/50\n", name);
+        printf(" %s HP %d/%d | 슬라임 HP 50/50\n", 
+            g_CurrentPlayer.name,
+            g_CurrentPlayer.hp, 
+            g_CurrentPlayer.maxHp);
         printf("=================================================\n");
         printf(" 선택 > ");
 

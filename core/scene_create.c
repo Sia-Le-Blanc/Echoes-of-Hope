@@ -1,11 +1,47 @@
 #include <stdio.h>
 #include <string.h>
 #include "../system/utils.h"
+#include "../system/fileio.h"
 #include "scene_create.h"
 #include "scene_town.h"
+#include "game.h"
+
+void InitializeCharacter(CharacterData* player, const char* name, JobType job) {
+    strcpy(player->name, name);
+    player->job = job;
+    player->level = 1;
+    player->exp = 0;
+    
+    // 직업별 초기 스탯
+    switch(job) {
+        case JOB_WARRIOR:
+            player->maxHp = 150;
+            player->maxMp = 20;
+            player->attack = 15;
+            player->defense = 10;
+            break;
+        case JOB_MAGE:
+            player->maxHp = 80;
+            player->maxMp = 50;
+            player->attack = 8;
+            player->defense = 5;
+            break;
+        case JOB_ARCHER:
+            player->maxHp = 100;
+            player->maxMp = 30;
+            player->attack = 12;
+            player->defense = 7;
+            break;
+    }
+    
+    player->hp = player->maxHp;
+    player->mp = player->maxMp;
+    player->inventoryCount = 0;
+}
 
 void ShowCharacterCreate() {
     char jobInput[32];
+    JobType selectedJob;
 
     while (1) {
         ClearScreen();
@@ -14,9 +50,9 @@ void ShowCharacterCreate() {
         printf("                 [ 캐릭터 생성 ]\n");
         printf("=================================================\n");
         printf("당신의 직업을 선택하세요.\n");
-        printf(" [ 1 ] 전사\n");
-        printf(" [ 2 ] 마법사\n");
-        printf(" [ 3 ] 궁수\n");
+        printf(" [ 1 ] 전사  (HP 150, MP 20, 공격 15, 방어 10)\n");
+        printf(" [ 2 ] 마법사 (HP 80, MP 50, 공격 8, 방어 5)\n");
+        printf(" [ 3 ] 궁수  (HP 100, MP 30, 공격 12, 방어 7)\n");
         printf(" [ 0 ] 취소\n");
         printf("-------------------------------------------------\n");
         printf(" 선택 > ");
@@ -32,10 +68,16 @@ void ShowCharacterCreate() {
 
         if (strcmp(jobInput, "0") == 0)
             return;
-        else if (strcmp(jobInput, "1") == 0 ||
-                 strcmp(jobInput, "2") == 0 ||
-                 strcmp(jobInput, "3") == 0)
-        {
+        else if (strcmp(jobInput, "1") == 0) {
+            selectedJob = JOB_WARRIOR;
+            break;
+        }
+        else if (strcmp(jobInput, "2") == 0) {
+            selectedJob = JOB_MAGE;
+            break;
+        }
+        else if (strcmp(jobInput, "3") == 0) {
+            selectedJob = JOB_ARCHER;
             break;
         }
 
@@ -61,9 +103,28 @@ void ShowCharacterCreate() {
         break;
     }
 
-    ClearScreen();
-    printf("'%s' 캐릭터를 생성했습니다.\n", name);
-    Pause();
-
-    ShowTown(name);
+    // 전역 플레이어 초기화
+    InitializeCharacter(&g_CurrentPlayer, name, selectedJob);
+    
+    // 저장 폴더 생성
+    if (!CreatePlayerSaveFolder(name)) {
+        printf("저장 폴더 생성 실패. data 폴더가 있는지 확인하세요.\n");
+        Pause();
+        return;
+    }
+    
+    // 캐릭터 저장
+    if (SavePlayer(&g_CurrentPlayer, name)) {
+        printf("'%s' 캐릭터가 생성되었습니다!\n", name);
+        
+        // 현재 씬을 마을로 설정하고 저장
+        g_CurrentScene = SCENE_TOWN;
+        SaveScene(g_CurrentScene, name);
+        
+        Pause();
+        ShowTown();
+    } else {
+        printf("캐릭터 저장 실패\n");
+        Pause();
+    }
 }

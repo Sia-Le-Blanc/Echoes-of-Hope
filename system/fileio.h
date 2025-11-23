@@ -5,35 +5,27 @@
 #include "../model/monster.h"
 #include "../model/equipment.h"
 #include "../core/game.h"
-#include <stddef.h> // size_t 사용
+#include <stddef.h>
 
-// 경로 생성 함수 (이름 기반 세이브 지원)
-
-// 플레이어 저장 파일 위치 반환
-// ex) data/Sia/player.txt
+// 경로 생성 함수
 void GetPlayerSavePath(char* buffer, size_t bufSize, const char* playerName);
-
-// 씬 저장 파일 위치 반환
-// ex) data/Sia/save.dat
 void GetSceneSavePath(char* buffer, size_t bufSize, const char* playerName);
 
-// 플레이어 폴더 생성 (data/<name>/)
+// 플레이어 폴더 생성
 int CreatePlayerSaveFolder(const char* playerName);
 
-// 저장된 플레이어 폴더 목록 불러오기 (불러오기 메뉴용)
-// 반환값: 발견된 폴더 개수
+// 저장된 플레이어 목록
 int GetSavedPlayerList(char names[][32], int maxCount);
 
-
-// 캐릭터 저장/로드 (이름 기반 저장)
+// 캐릭터 저장/로드
 int SavePlayer(const CharacterData* player, const char* playerName);
 int LoadPlayer(CharacterData* outPlayer, const char* playerName);
 
-// 씬 자동 저장/로드 (이름 기반)
+// 씬 저장/로드
 int SaveScene(SceneType scene, const char* playerName);
 int LoadScene(SceneType* outScene, const char* playerName);
 
-// 몬스터 / 장비 데이터 로드 (게임 DB, 세이브 X)
+// 몬스터/장비 로드
 int LoadMonster(MonsterData* outMonster, int monsterId);
 int LoadEquipment(EquipmentData* outEquip, int equipId);
 
