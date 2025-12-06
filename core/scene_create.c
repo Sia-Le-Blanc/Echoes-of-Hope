@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include "game.h"
 #include "../system/utils.h"
 #include "../system/fileio.h"
 #include "../story/scene_story.h"
 #include "scene_create.h"
 #include "scene_town.h"
-#include "game.h"
 
 void InitializeCharacter(CharacterData* player, const char* name, JobType job) {
     strcpy(player->name, name);

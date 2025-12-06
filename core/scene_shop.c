@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../system/utils.h"
 #include "../system/item_manager.h"
 #include "scene_shop.h"
 #include "game.h"
+
+extern int atoi(const char* str);
 
 void ShowShop() {
     char input[32];

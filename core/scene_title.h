@@ -1,6 +1,6 @@
-#ifndef SCENE_TOWN_H
-#define SCENE_TOWN_H
+#ifndef SCENE_TITLE_H
+#define SCENE_TITLE_H
 
-void ShowTown();
+void ShowTitle();
 
 #endif

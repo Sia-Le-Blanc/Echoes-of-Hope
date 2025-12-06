@@ -1,6 +1,7 @@
 #include "scene_dungeon.h"
 #include "chapter_data.h"
 #include "game.h"
+#include "combat_system.h"
 #include "../story/scene_story.h"
 #include "../system/utils.h"
 #include "../system/fileio.h"
@@ -66,9 +67,97 @@ MonsterData LoadBoss(int chapter) {
 }
 
 int BattleWithMonster(MonsterData* monster, int isBoss) {
-    // TODO: scene_battle.c의 전투 로직을 여기로 이동
-    // 지금은 임시로 1 반환
-    return 1;
+    if (!monster) return 0;
+    
+    int monsterMaxHp = monster->hp;
+    char input[32];
+    
+    while (1) {
+        ClearScreen();
+        
+        printf("=================================================\n");
+        if (isBoss) {
+            printf("          [ 보스 전투 : %s ]\n", monster->name);
+        } else {
+            printf("          [ 전투 : %s ]\n", monster->name);
+        }
+        printf("=================================================\n");
+        printf(" %s이(가) 나타났다!\n\n", monster->name);
+        printf(" [ 1 ] 공격하기\n");
+        printf(" [ 2 ] 도망가기\n");
+        printf("=================================================\n");
+        printf(" %s HP %d/%d | %s HP %d/%d\n",
+               g_CurrentPlayer.name, g_CurrentPlayer.hp, g_CurrentPlayer.maxHp,
+               monster->name, monster->hp, monsterMaxHp);
+        printf("=================================================\n");
+        printf(" 선택 > ");
+        
+        fgets(input, sizeof(input), stdin);
+        input[strcspn(input, "\n")] = 0;
+        
+        if (strlen(input) == 0) {
+            printf("잘못된 입력입니다.\n");
+            Pause();
+            continue;
+        }
+        
+        if (strcmp(input, "1") == 0) {
+            AttackResult playerAttack = CalculateAttack(&g_CurrentPlayer, monster);
+            
+            printf("\n→ %s을(를) 공격!\n", monster->name);
+            if (playerAttack.isCritical) {
+                printf("   ★ 치명타! %d 데미지!\n", playerAttack.actualDamage);
+            } else {
+                printf("   %d 데미지!\n", playerAttack.actualDamage);
+            }
+            
+            if (monster->hp <= 0) {
+                printf("\n★ %s을(를) 처치했다!\n", monster->name);
+                int expGain = monster->level * 25;
+                int goldGain = monster->level * 10;
+                printf("경험치 +%d, Gold +%d\n", expGain, goldGain);
+                
+                g_CurrentPlayer.exp += expGain;
+                g_CurrentPlayer.gold += goldGain;
+                
+                Pause();
+                return 1;
+            }
+            
+            AttackResult monsterAttack = CalculateMonsterAttack(monster, &g_CurrentPlayer);
+            
+            printf("← %s의 반격!\n", monster->name);
+            if (monsterAttack.isDodged) {
+                printf("   ◆ 회피했다!\n");
+            } else {
+                printf("   %d 데미지!\n", monsterAttack.actualDamage);
+            }
+            
+            if (g_CurrentPlayer.hp <= 0) {
+                printf("\n✖ 전투 패배...\n");
+                g_CurrentPlayer.hp = 1;
+                g_GameProgress.deaths++;
+                Pause();
+                return 0;
+            }
+            
+            Pause();
+        }
+        else if (strcmp(input, "2") == 0) {
+            if (isBoss) {
+                printf("\n보스전에서는 도망갈 수 없습니다!\n");
+                Pause();
+            } else {
+                printf("\n도망쳤습니다!\n");
+                Pause();
+                return 0;
+            }
+        }
+        else {
+            printf("잘못된 입력입니다.\n");
+            Pause();
+        }
+    }
 }
 
 void ShowDungeon() {
