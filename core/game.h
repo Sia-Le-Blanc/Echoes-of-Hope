@@ -2,6 +2,7 @@
 #define CORE_GAME_H
 
 #include "../model/character.h"
+#include "../model/game_progress.h"
 
 typedef enum {
     SCENE_TITLE = 0,
@@ -13,5 +14,6 @@ typedef enum {
 
 extern SceneType g_CurrentScene;
 extern CharacterData g_CurrentPlayer;
+extern GameProgress g_GameProgress;
 
 #endif
