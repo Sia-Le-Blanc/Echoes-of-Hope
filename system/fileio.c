@@ -42,9 +42,18 @@ int GetSavedPlayerList(char names[][32], int maxCount) {
         snprintf(path, sizeof(path), "data/%s", entry->d_name);
         
         if (stat(path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
-            strncpy(names[count], entry->d_name, 31);
-            names[count][31] = '\0';
-            count++;
+            /* player.txt 파일 존재 확인 */
+            char playerFilePath[256];
+            snprintf(playerFilePath, sizeof(playerFilePath), 
+                     "data/%s/player.txt", entry->d_name);
+            
+            FILE* checkFile = fopen(playerFilePath, "r");
+            if (checkFile) {
+                fclose(checkFile);
+                strncpy(names[count], entry->d_name, 31);
+                names[count][31] = '\0';
+                count++;
+            }
         }
     }
     closedir(dir);

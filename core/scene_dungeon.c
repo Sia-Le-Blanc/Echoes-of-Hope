@@ -5,6 +5,7 @@
 #include "../story/scene_story.h"
 #include "../system/utils.h"
 #include "../system/fileio.h"
+#include "../system/item_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -84,7 +85,10 @@ int BattleWithMonster(MonsterData* monster, int isBoss) {
         printf("=================================================\n");
         printf(" %s이(가) 나타났다!\n\n", monster->name);
         printf(" [ 1 ] 공격하기\n");
-        printf(" [ 2 ] 도망가기\n");
+        printf(" [ 2 ] 아이템 사용\n");
+        if (!isBoss) {
+            printf(" [ 3 ] 도망가기\n");
+        }
         printf("=================================================\n");
         printf(" %s HP %d/%d | %s HP %d/%d\n",
                g_CurrentPlayer.name, g_CurrentPlayer.hp, g_CurrentPlayer.maxHp,
@@ -102,6 +106,7 @@ int BattleWithMonster(MonsterData* monster, int isBoss) {
         }
         
         if (strcmp(input, "1") == 0) {
+            // 플레이어 공격
             AttackResult playerAttack = CalculateAttack(&g_CurrentPlayer, monster);
             
             printf("\n→ %s을(를) 공격!\n", monster->name);
@@ -124,6 +129,7 @@ int BattleWithMonster(MonsterData* monster, int isBoss) {
                 return 1;
             }
             
+            // 몬스터 반격
             AttackResult monsterAttack = CalculateMonsterAttack(monster, &g_CurrentPlayer);
             
             printf("← %s의 반격!\n", monster->name);
@@ -144,14 +150,63 @@ int BattleWithMonster(MonsterData* monster, int isBoss) {
             Pause();
         }
         else if (strcmp(input, "2") == 0) {
-            if (isBoss) {
-                printf("\n보스전에서는 도망갈 수 없습니다!\n");
+            // 아이템 사용
+            if (g_CurrentPlayer.inventoryCount == 0) {
+                printf("\n사용할 아이템이 없습니다!\n");
                 Pause();
-            } else {
-                printf("\n도망쳤습니다!\n");
-                Pause();
-                return 0;
+                continue;
             }
+            
+            ClearScreen();
+            printf("=================================================\n");
+            printf("              [ 아이템 사용 ]\n");
+            printf("=================================================\n");
+            for (int i = 0; i < g_CurrentPlayer.inventoryCount; i++) {
+                ItemData item = LoadItemData(g_CurrentPlayer.inventory[i]);
+                printf(" [%d] %s - %s\n", i + 1, item.name, item.description);
+            }
+            printf(" [ 0 ] 취소\n");
+            printf("=================================================\n");
+            printf(" 선택 > ");
+            
+            char itemInput[32];
+            fgets(itemInput, sizeof(itemInput), stdin);
+            itemInput[strcspn(itemInput, "\n")] = 0;
+            
+            if (strcmp(itemInput, "0") == 0) {
+                continue;
+            }
+            
+            int itemChoice = atoi(itemInput);
+            if (itemChoice > 0 && itemChoice <= g_CurrentPlayer.inventoryCount) {
+                UseItem(&g_CurrentPlayer, itemChoice - 1);
+                Pause();
+                
+                // 아이템 사용 후 몬스터 턴
+                AttackResult monsterAttack = CalculateMonsterAttack(monster, &g_CurrentPlayer);
+                
+                printf("\n← %s의 공격!\n", monster->name);
+                if (monsterAttack.isDodged) {
+                    printf("   ◆ 회피했다!\n");
+                } else {
+                    printf("   %d 데미지!\n", monsterAttack.actualDamage);
+                }
+                
+                if (g_CurrentPlayer.hp <= 0) {
+                    printf("\n✖ 전투 패배...\n");
+                    g_CurrentPlayer.hp = 1;
+                    g_GameProgress.deaths++;
+                    Pause();
+                    return 0;
+                }
+                
+                Pause();
+            }
+        }
+        else if (strcmp(input, "3") == 0 && !isBoss) {
+            printf("\n도망쳤습니다!\n");
+            Pause();
+            return 0;
         }
         else {
             printf("잘못된 입력입니다.\n");
@@ -165,7 +220,7 @@ void ShowDungeon() {
     
     int chapter = g_GameProgress.currentChapter;
     
-    // 1. 챕터 인트로 스토리
+    // 1. 챕터 인트로 스토리 (최초 1회만)
     if (g_GameProgress.storyProgress == 0) {
         if (chapter == 1) ShowStory(1, "intro");
         else if (chapter == 2) ShowStory(2, "intro");
@@ -179,30 +234,34 @@ void ShowDungeon() {
         MonsterData monster = LoadRandomMonster(chapter);
         
         if (!BattleWithMonster(&monster, 0)) {
-            // 패배 또는 도망
+            // 패배 또는 도망 - 진행도는 유지됨 (체크포인트)
             printf("\n던전을 빠져나왔습니다...\n");
             Pause();
-            g_GameProgress.monstersDefeated = 0;
-            g_GameProgress.storyProgress = 0;
             return;
         }
         
         g_GameProgress.monstersDefeated++;
+        SaveProgress(&g_GameProgress, g_CurrentPlayer.name);  // 진행도 저장
         
         // 중간 스토리
-        if (chapter == 1 && g_GameProgress.monstersDefeated == 2) {
+        if (chapter == 1 && g_GameProgress.monstersDefeated == 2 && g_GameProgress.storyProgress == 1) {
             ShowStory(1, "village");
+            g_GameProgress.storyProgress = 2;
         }
-        else if (chapter == 1 && g_GameProgress.monstersDefeated == 4) {
+        else if (chapter == 1 && g_GameProgress.monstersDefeated == 4 && g_GameProgress.storyProgress == 2) {
             ShowStory(1, "rumor");
+            g_GameProgress.storyProgress = 3;
         }
     }
     
-    // 3. 보스 등장 스토리
-    if (chapter == 1) ShowStory(1, "boss");
-    else if (chapter == 2) ShowStory(2, "church");
-    else if (chapter == 3) ShowStory(3, "boss");
-    else if (chapter == 4) ShowStory(4, "ending");
+    // 3. 보스 등장 스토리 (최초 1회만)
+    if (g_GameProgress.storyProgress < 10) {
+        if (chapter == 1) ShowStory(1, "boss");
+        else if (chapter == 2) ShowStory(2, "church");
+        else if (chapter == 3) ShowStory(3, "boss");
+        else if (chapter == 4) ShowStory(4, "ending");
+        g_GameProgress.storyProgress = 10;
+    }
     
     // 4. 보스 전투
     MonsterData boss = LoadBoss(chapter);
@@ -210,8 +269,6 @@ void ShowDungeon() {
     if (!BattleWithMonster(&boss, 1)) {
         printf("\n보스에게 패배했습니다...\n");
         Pause();
-        g_GameProgress.monstersDefeated = 0;
-        g_GameProgress.storyProgress = 0;
         return;
     }
     
@@ -234,5 +291,6 @@ void ShowDungeon() {
         printf("\n\n★★★ 게임 클리어! ★★★\n");
     }
     
+    SaveProgress(&g_GameProgress, g_CurrentPlayer.name);
     Pause();
 }

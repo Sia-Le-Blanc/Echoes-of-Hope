@@ -16,37 +16,37 @@ void InitializeCharacter(CharacterData* player, const char* name, JobType job) {
     player->gold = 0;
     player->statPoints = 0;
     
-    // 직업별 초기 스탯
+    // 직업별 초기 스탯 (PDF 기준)
     switch(job) {
         case JOB_WARRIOR:
-            player->maxHp = 150;
+            player->maxHp = 80;
             player->maxMp = 20;
-            player->attack = 15;
-            player->defense = 10;
+            player->attack = 7;
+            player->defense = 5;
             player->str = 10;
             player->dex = 5;
-            player->intel = 3;
-            player->luk = 2;
+            player->intel = 5;
+            player->luk = 5;
             break;
         case JOB_MAGE:
-            player->maxHp = 80;
+            player->maxHp = 60;
             player->maxMp = 50;
-            player->attack = 8;
-            player->defense = 5;
-            player->str = 3;
+            player->attack = 0;
+            player->defense = 1;
+            player->str = 5;
             player->dex = 5;
-            player->intel = 12;
+            player->intel = 10;
             player->luk = 5;
             break;
         case JOB_ARCHER:
-            player->maxHp = 100;
+            player->maxHp = 70;
             player->maxMp = 30;
-            player->attack = 12;
-            player->defense = 7;
+            player->attack = 6;
+            player->defense = 4;
             player->str = 5;
             player->dex = 10;
             player->intel = 5;
-            player->luk = 7;
+            player->luk = 5;
             break;
     }
     
@@ -74,12 +74,12 @@ void ShowCharacterCreate() {
         printf("                 [ 캐릭터 생성 ]\n");
         printf("=================================================\n");
         printf("당신의 직업을 선택하세요.\n");
-        printf(" [ 1 ] 전사  (HP 150, MP 20, 공격 15, 방어 10)\n");
-        printf("       STR 10 | DEX 5 | INT 3 | LUK 2\n");
-        printf(" [ 2 ] 마법사 (HP 80, MP 50, 공격 8, 방어 5)\n");
-        printf("       STR 3 | DEX 5 | INT 12 | LUK 5\n");
-        printf(" [ 3 ] 궁수  (HP 100, MP 30, 공격 12, 방어 7)\n");
-        printf("       STR 5 | DEX 10 | INT 5 | LUK 7\n");
+        printf(" [ 1 ] 전사  (HP 80, MP 20, 공격 7, 방어 5)\n");
+        printf("       STR 10 | DEX 5 | INT 5 | LUK 5\n");
+        printf(" [ 2 ] 마법사 (HP 60, MP 50, 공격 0, 방어 1)\n");
+        printf("       STR 5 | DEX 5 | INT 10 | LUK 5\n");
+        printf(" [ 3 ] 궁수  (HP 70, MP 30, 공격 6, 방어 4)\n");
+        printf("       STR 5 | DEX 10 | INT 5 | LUK 5\n");
         printf(" [ 0 ] 취소\n");
         printf("-------------------------------------------------\n");
         printf(" 선택 > ");
@@ -153,8 +153,7 @@ void ShowCharacterCreate() {
         
         Pause();
         
-        // chapter5_player 스토리 출력
-        ShowStory(5, "player");
+        // 스토리는 던전 입장 시 자동 재생되므로 여기서는 제거
         
         ShowTown();
     } else {
