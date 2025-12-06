@@ -2,6 +2,7 @@
 #include <string.h>
 #include "../system/utils.h"
 #include "../system/fileio.h"
+#include "../story/scene_story.h"
 #include "scene_create.h"
 #include "scene_town.h"
 #include "game.h"
@@ -11,6 +12,8 @@ void InitializeCharacter(CharacterData* player, const char* name, JobType job) {
     player->job = job;
     player->level = 1;
     player->exp = 0;
+    player->gold = 0;
+    player->statPoints = 0;
     
     // 직업별 초기 스탯
     switch(job) {
@@ -19,24 +22,44 @@ void InitializeCharacter(CharacterData* player, const char* name, JobType job) {
             player->maxMp = 20;
             player->attack = 15;
             player->defense = 10;
+            player->str = 10;
+            player->dex = 5;
+            player->intel = 3;
+            player->luk = 2;
             break;
         case JOB_MAGE:
             player->maxHp = 80;
             player->maxMp = 50;
             player->attack = 8;
             player->defense = 5;
+            player->str = 3;
+            player->dex = 5;
+            player->intel = 12;
+            player->luk = 5;
             break;
         case JOB_ARCHER:
             player->maxHp = 100;
             player->maxMp = 30;
             player->attack = 12;
             player->defense = 7;
+            player->str = 5;
+            player->dex = 10;
+            player->intel = 5;
+            player->luk = 7;
             break;
     }
     
     player->hp = player->maxHp;
     player->mp = player->maxMp;
     player->inventoryCount = 0;
+    
+    // 장비 초기화
+    player->weaponId = 0;
+    player->helmetId = 0;
+    player->armorId = 0;
+    player->pantsId = 0;
+    player->glovesId = 0;
+    player->bootsId = 0;
 }
 
 void ShowCharacterCreate() {
@@ -51,8 +74,11 @@ void ShowCharacterCreate() {
         printf("=================================================\n");
         printf("당신의 직업을 선택하세요.\n");
         printf(" [ 1 ] 전사  (HP 150, MP 20, 공격 15, 방어 10)\n");
+        printf("       STR 10 | DEX 5 | INT 3 | LUK 2\n");
         printf(" [ 2 ] 마법사 (HP 80, MP 50, 공격 8, 방어 5)\n");
+        printf("       STR 3 | DEX 5 | INT 12 | LUK 5\n");
         printf(" [ 3 ] 궁수  (HP 100, MP 30, 공격 12, 방어 7)\n");
+        printf("       STR 5 | DEX 10 | INT 5 | LUK 7\n");
         printf(" [ 0 ] 취소\n");
         printf("-------------------------------------------------\n");
         printf(" 선택 > ");
@@ -121,7 +147,14 @@ void ShowCharacterCreate() {
         g_CurrentScene = SCENE_TOWN;
         SaveScene(g_CurrentScene, name);
         
+        // GameProgress 저장
+        SaveProgress(&g_GameProgress, name);
+        
         Pause();
+        
+        // chapter5_player 스토리 출력
+        ShowStory(5, "player");
+        
         ShowTown();
     } else {
         printf("캐릭터 저장 실패\n");

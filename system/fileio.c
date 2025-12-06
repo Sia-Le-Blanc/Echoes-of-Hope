@@ -12,6 +12,10 @@ void GetSceneSavePath(char* buffer, size_t bufSize, const char* playerName) {
     snprintf(buffer, bufSize, "data/%s/save.dat", playerName);
 }
 
+void GetProgressSavePath(char* buffer, size_t bufSize, const char* playerName) {
+    snprintf(buffer, bufSize, "data/%s/progress.dat", playerName);
+}
+
 int CreatePlayerSaveFolder(const char* playerName) {
     char path[64];
     snprintf(path, sizeof(path), "data/%s", playerName);
@@ -31,7 +35,13 @@ int GetSavedPlayerList(char names[][32], int maxCount) {
 
     while ((entry = readdir(dir)) != NULL && count < maxCount) {
         if (entry->d_name[0] == '.') continue;
-        if (entry->d_type == DT_DIR) {
+        
+        /* 디렉터리인지 확인 */
+        char path[128];
+        struct stat statbuf;
+        snprintf(path, sizeof(path), "data/%s", entry->d_name);
+        
+        if (stat(path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
             strncpy(names[count], entry->d_name, 31);
             names[count][31] = '\0';
             count++;
@@ -50,12 +60,36 @@ int SavePlayer(const CharacterData* player, const char* playerName) {
     FILE* fp = fopen(path, "w");
     if (!fp) return 0;
 
+    // 기본 정보
     fprintf(fp, "%s\n", player->name);
     fprintf(fp, "%d\n", player->job);
-    fprintf(fp, "%d %d %d %d %d\n",
-        player->level, player->exp, player->hp,
-        player->maxHp, player->attack
-    );
+    fprintf(fp, "%d\n", player->level);
+    
+    // 경험치/골드/스탯포인트
+    fprintf(fp, "%d %d %d\n", player->exp, player->gold, player->statPoints);
+    
+    // HP/MP
+    fprintf(fp, "%d %d %d %d\n",
+        player->hp, player->maxHp, player->mp, player->maxMp);
+    
+    // 공격력/방어력
+    fprintf(fp, "%d %d\n", player->attack, player->defense);
+    
+    // 추가 스탯
+    fprintf(fp, "%d %d %d %d\n",
+        player->str, player->dex, player->intel, player->luk);
+    
+    // 장비
+    fprintf(fp, "%d %d %d %d %d %d\n",
+        player->weaponId, player->helmetId, player->armorId,
+        player->pantsId, player->glovesId, player->bootsId);
+    
+    // 인벤토리
+    fprintf(fp, "%d\n", player->inventoryCount);
+    for (int i = 0; i < player->inventoryCount; i++) {
+        fprintf(fp, "%d ", player->inventory[i]);
+    }
+    fprintf(fp, "\n");
 
     fclose(fp);
     return 1;
@@ -70,6 +104,7 @@ int LoadPlayer(CharacterData* outPlayer, const char* playerName) {
     FILE* fp = fopen(path, "r");
     if (!fp) return 0;
 
+    // 기본 정보
     if (fgets(outPlayer->name, sizeof(outPlayer->name), fp) == NULL) {
         fclose(fp);
         return 0;
@@ -79,11 +114,33 @@ int LoadPlayer(CharacterData* outPlayer, const char* playerName) {
     int tempJob;
     fscanf(fp, "%d", &tempJob);
     outPlayer->job = (JobType)tempJob;
-
-    fscanf(fp, "%d %d %d %d %d",
-        &outPlayer->level, &outPlayer->exp,
-        &outPlayer->hp, &outPlayer->maxHp, &outPlayer->attack
-    );
+    
+    fscanf(fp, "%d", &outPlayer->level);
+    
+    // 경험치/골드/스탯포인트
+    fscanf(fp, "%d %d %d", &outPlayer->exp, &outPlayer->gold, &outPlayer->statPoints);
+    
+    // HP/MP
+    fscanf(fp, "%d %d %d %d",
+        &outPlayer->hp, &outPlayer->maxHp, &outPlayer->mp, &outPlayer->maxMp);
+    
+    // 공격력/방어력
+    fscanf(fp, "%d %d", &outPlayer->attack, &outPlayer->defense);
+    
+    // 추가 스탯
+    fscanf(fp, "%d %d %d %d",
+        &outPlayer->str, &outPlayer->dex, &outPlayer->intel, &outPlayer->luk);
+    
+    // 장비
+    fscanf(fp, "%d %d %d %d %d %d",
+        &outPlayer->weaponId, &outPlayer->helmetId, &outPlayer->armorId,
+        &outPlayer->pantsId, &outPlayer->glovesId, &outPlayer->bootsId);
+    
+    // 인벤토리
+    fscanf(fp, "%d", &outPlayer->inventoryCount);
+    for (int i = 0; i < outPlayer->inventoryCount; i++) {
+        fscanf(fp, "%d", &outPlayer->inventory[i]);
+    }
 
     fclose(fp);
     return 1;
@@ -161,10 +218,65 @@ int LoadEquipment(EquipmentData* outEquip, int equipId) {
     );
     outEquip->slot = (EquipmentSlot)slotTemp;
 
-    fgetc(fp);  // 개행 제거
+    fgetc(fp);
     fgets(outEquip->lore, sizeof(outEquip->lore), fp);
-    outEquip->lore[strcspn(outEquip->lore, "\n")] = '\0';  // 오타 수정됨
+    outEquip->lore[strcspn(outEquip->lore, "\n")] = '\0';
 
+    fclose(fp);
+    return 1;
+}
+
+int SaveProgress(const GameProgress* progress, const char* playerName) {
+    if (!progress || !playerName) return 0;
+    
+    char path[64];
+    GetProgressSavePath(path, sizeof(path), playerName);
+    
+    FILE* fp = fopen(path, "w");
+    if (!fp) return 0;
+    
+    fprintf(fp, "%d %d %d %d\n",
+        progress->currentChapter,
+        progress->storyProgress,
+        progress->monstersDefeated,
+        progress->difficulty);
+    
+    // 챕터 클리어 여부
+    for (int i = 0; i < 5; i++) {
+        fprintf(fp, "%d ", progress->chapterCleared[i]);
+    }
+    fprintf(fp, "\n");
+    
+    fprintf(fp, "%d %d\n", progress->totalPlayTime, progress->deaths);
+    
+    fclose(fp);
+    return 1;
+}
+
+int LoadProgress(GameProgress* outProgress, const char* playerName) {
+    if (!outProgress || !playerName) return 0;
+    
+    char path[64];
+    GetProgressSavePath(path, sizeof(path), playerName);
+    
+    FILE* fp = fopen(path, "r");
+    if (!fp) return 0;
+    
+    int tempDifficulty;
+    fscanf(fp, "%d %d %d %d",
+        &outProgress->currentChapter,
+        &outProgress->storyProgress,
+        &outProgress->monstersDefeated,
+        &tempDifficulty);
+    outProgress->difficulty = (Difficulty)tempDifficulty;
+    
+    // 챕터 클리어 여부
+    for (int i = 0; i < 5; i++) {
+        fscanf(fp, "%d", &outProgress->chapterCleared[i]);
+    }
+    
+    fscanf(fp, "%d %d", &outProgress->totalPlayTime, &outProgress->deaths);
+    
     fclose(fp);
     return 1;
 }

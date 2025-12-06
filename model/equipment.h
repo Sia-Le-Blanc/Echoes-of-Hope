@@ -1,4 +1,3 @@
-// model/equipment.h
 #ifndef MODEL_EQUIPMENT_H
 #define MODEL_EQUIPMENT_H
 

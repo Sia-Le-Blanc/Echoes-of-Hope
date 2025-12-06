@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../system/utils.h"
+#include "../system/item_manager.h"
+#include "../system/equipment_manager.h"
 #include "scene_inventory.h"
 #include "game.h"
 
@@ -19,13 +22,16 @@ void ShowInventory() {
         } else {
             printf(" 보유 아이템:\n");
             for (int i = 0; i < g_CurrentPlayer.inventoryCount; i++) {
-                printf(" [%d] 아이템 ID: %d\n", i + 1, g_CurrentPlayer.inventory[i]);
+                ItemData item = LoadItemData(g_CurrentPlayer.inventory[i]);
+                printf(" [%d] %s - %s\n", 
+                       i + 1, item.name, item.description);
             }
         }
         
         printf("-------------------------------------------------\n");
         printf(" 인벤토리: %d/20\n", g_CurrentPlayer.inventoryCount);
         printf("=================================================\n");
+        printf(" [ 숫자 ] 아이템 사용\n");
         printf(" [ 0 ] 나가기\n");
         printf("=================================================\n");
         printf(" 선택 > ");
@@ -37,8 +43,15 @@ void ShowInventory() {
             return;
         }
         
-        printf("아이템 사용 기능은 미구현입니다.\n");
-        Pause();
+        int choice = atoi(input);
+        if (choice > 0 && choice <= g_CurrentPlayer.inventoryCount) {
+            UseItem(&g_CurrentPlayer, choice - 1);
+            Pause();
+        }
+        else {
+            printf("잘못된 입력입니다.\n");
+            Pause();
+        }
     }
 }
 
@@ -62,7 +75,12 @@ void ShowEquipment() {
         printf(" 총 공격력: %d | 총 방어력: %d\n",
                g_CurrentPlayer.attack, g_CurrentPlayer.defense);
         printf("=================================================\n");
-        printf(" [ 1 ] 장비 해제 (미구현)\n");
+        printf(" [ 1 ] 무기 해제\n");
+        printf(" [ 2 ] 투구 해제\n");
+        printf(" [ 3 ] 상의 해제\n");
+        printf(" [ 4 ] 하의 해제\n");
+        printf(" [ 5 ] 장갑 해제\n");
+        printf(" [ 6 ] 신발 해제\n");
         printf(" [ 0 ] 나가기\n");
         printf("=================================================\n");
         printf(" 선택 > ");
@@ -73,8 +91,33 @@ void ShowEquipment() {
         if (strcmp(input, "0") == 0) {
             return;
         }
-        
-        printf("장비 해제 기능은 미구현입니다.\n");
-        Pause();
+        else if (strcmp(input, "1") == 0) {
+            UnequipItem(&g_CurrentPlayer, EQUIP_WEAPON);
+            Pause();
+        }
+        else if (strcmp(input, "2") == 0) {
+            UnequipItem(&g_CurrentPlayer, EQUIP_HELMET);
+            Pause();
+        }
+        else if (strcmp(input, "3") == 0) {
+            UnequipItem(&g_CurrentPlayer, EQUIP_ARMOR);
+            Pause();
+        }
+        else if (strcmp(input, "4") == 0) {
+            UnequipItem(&g_CurrentPlayer, EQUIP_PANTS);
+            Pause();
+        }
+        else if (strcmp(input, "5") == 0) {
+            UnequipItem(&g_CurrentPlayer, EQUIP_GLOVES);
+            Pause();
+        }
+        else if (strcmp(input, "6") == 0) {
+            UnequipItem(&g_CurrentPlayer, EQUIP_BOOTS);
+            Pause();
+        }
+        else {
+            printf("잘못된 입력입니다.\n");
+            Pause();
+        }
     }
 }

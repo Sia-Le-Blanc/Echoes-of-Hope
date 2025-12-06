@@ -6,7 +6,7 @@
 
 void ShowRest() {
     char input[32];
-    int restCost = 50; // 휴식 비용
+    int restCost = 50;
     
     while (1) {
         ClearScreen();
@@ -18,7 +18,7 @@ void ShowRest() {
         printf(" HP/MP가 전부 회복됩니다.\n\n");
         printf(" 비용: %d Gold\n", restCost);
         printf("-------------------------------------------------\n");
-        printf(" 현재 Gold: %d\n", g_CurrentPlayer.exp); // 임시로 exp 사용
+        printf(" 현재 Gold: %d\n", g_CurrentPlayer.gold);
         printf(" 현재 상태: HP %d/%d | MP %d/%d\n",
                g_CurrentPlayer.hp, g_CurrentPlayer.maxHp,
                g_CurrentPlayer.mp, g_CurrentPlayer.maxMp);
@@ -48,10 +48,17 @@ void ShowRest() {
                 continue;
             }
             
-            // Gold 체크는 나중에 구현
-            printf("\n푹 쉬었습니다...\n");
+            if (g_CurrentPlayer.gold < restCost) {
+                printf("\nGold가 부족합니다! (필요: %d Gold)\n", restCost);
+                Pause();
+                continue;
+            }
+            
+            g_CurrentPlayer.gold -= restCost;
             g_CurrentPlayer.hp = g_CurrentPlayer.maxHp;
             g_CurrentPlayer.mp = g_CurrentPlayer.maxMp;
+            
+            printf("\n푹 쉬었습니다...\n");
             printf("HP/MP가 전부 회복되었습니다!\n");
             Pause();
             return;

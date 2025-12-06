@@ -2,10 +2,10 @@
 #include <string.h>
 #include "../system/utils.h"
 #include "scene_town.h"
-#include "scene_battle.h"
-#include "scene_rest.h"
-#include "scene_shop.h"
+#include "scene_dungeon.h"
 #include "scene_training.h"
+#include "scene_shop.h"
+#include "scene_rest.h"
 #include "scene_inventory.h"
 #include "game.h"
 
@@ -31,6 +31,9 @@ void ShowTown() {
                g_CurrentPlayer.level,
                g_CurrentPlayer.hp, g_CurrentPlayer.maxHp,
                g_CurrentPlayer.mp, g_CurrentPlayer.maxMp);
+        printf(" Gold: %d | 챕터: %d\n",
+               g_CurrentPlayer.gold,
+               g_GameProgress.currentChapter);
         printf("=================================================\n");
         printf(" 선택 > ");
 
@@ -60,7 +63,7 @@ void ShowTown() {
             ShowInventory();
         }
         else if (strcmp(input, "6") == 0) {
-            ShowBattle();
+            ShowDungeon();
         }
         else {
             printf("잘못된 입력입니다.\n");
