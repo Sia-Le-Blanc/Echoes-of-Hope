@@ -220,6 +220,10 @@ void ShowDungeon() {
     
     int chapter = g_GameProgress.currentChapter;
     
+    // 던전 입장 시 몬스터 카운트 초기화 (마을에서 재입장 시)
+    // 단, 스토리는 유지됨
+    g_GameProgress.monstersDefeated = 0;
+    
     // 1. 챕터 인트로 스토리 (최초 1회만)
     if (g_GameProgress.storyProgress == 0) {
         if (chapter == 1) ShowStory(1, "intro");
@@ -227,6 +231,7 @@ void ShowDungeon() {
         else if (chapter == 3) ShowStory(3, "intro");
         else if (chapter == 4) ShowStory(4, "intro");
         g_GameProgress.storyProgress = 1;
+        SaveProgress(&g_GameProgress, g_CurrentPlayer.name);
     }
     
     // 2. 일반 몬스터 5마리
@@ -234,23 +239,24 @@ void ShowDungeon() {
         MonsterData monster = LoadRandomMonster(chapter);
         
         if (!BattleWithMonster(&monster, 0)) {
-            // 패배 또는 도망 - 진행도는 유지됨 (체크포인트)
+            // 패배 또는 도망 - 마을로 복귀
             printf("\n던전을 빠져나왔습니다...\n");
             Pause();
             return;
         }
         
         g_GameProgress.monstersDefeated++;
-        SaveProgress(&g_GameProgress, g_CurrentPlayer.name);  // 진행도 저장
         
-        // 중간 스토리
+        // 중간 스토리 (최초 1회만)
         if (chapter == 1 && g_GameProgress.monstersDefeated == 2 && g_GameProgress.storyProgress == 1) {
             ShowStory(1, "village");
             g_GameProgress.storyProgress = 2;
+            SaveProgress(&g_GameProgress, g_CurrentPlayer.name);
         }
         else if (chapter == 1 && g_GameProgress.monstersDefeated == 4 && g_GameProgress.storyProgress == 2) {
             ShowStory(1, "rumor");
             g_GameProgress.storyProgress = 3;
+            SaveProgress(&g_GameProgress, g_CurrentPlayer.name);
         }
     }
     
@@ -261,6 +267,7 @@ void ShowDungeon() {
         else if (chapter == 3) ShowStory(3, "boss");
         else if (chapter == 4) ShowStory(4, "ending");
         g_GameProgress.storyProgress = 10;
+        SaveProgress(&g_GameProgress, g_CurrentPlayer.name);
     }
     
     // 4. 보스 전투
