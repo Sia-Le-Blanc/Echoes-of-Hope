@@ -83,31 +83,6 @@ void UseItem(PlayerData* player, int inventoryIndex) {
     player->inventoryCount--;
 }
 
-void ShowInventory(PlayerData* player) {
-    ClearScreen();
-    printf("=================================================\n");
-    printf("                [ 인벤토리 ]\n");
-    printf("=================================================\n");
-    
-    if (player->inventoryCount == 0) {
-        printf(" (비어있음)\n");
-    } else {
-        for (int i = 0; i < player->inventoryCount; i++) {
-            ItemData item = LoadItemData(player->inventory[i]);
-            printf(" [%d] %s\n", i + 1, item.name);
-            printf("     %s\n", item.description);
-            if (item.healAmount > 0) {
-                printf("     회복량: %d\n", item.healAmount);
-            }
-            printf("\n");
-        }
-    }
-    
-    printf("=================================================\n");
-    printf(" 사용 중인 슬롯: %d/20\n", player->inventoryCount);
-    printf("=================================================\n");
-}
-
 int GetItemCount(PlayerData* player, int itemId) {
     int count = 0;
     for (int i = 0; i < player->inventoryCount; i++) {
