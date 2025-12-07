@@ -67,7 +67,7 @@ MonsterData LoadBoss(int chapter) {
     return boss;
 }
 
-int BattleWithMonster(MonsterData* monster, int isBoss) {
+int BattleWithMonster(MonsterData* monster, int isBoss, int chapter) {
     if (!monster) return 0;
     
     int monsterMaxHp = monster->hp;
@@ -124,6 +124,46 @@ int BattleWithMonster(MonsterData* monster, int isBoss) {
                 
                 g_CurrentPlayer.exp += expGain;
                 g_CurrentPlayer.gold += goldGain;
+                
+                // 아이템 드롭 시스템 (50% 확률)
+                if (monster->dropItemId > 0) {
+                    int dropChance = rand() % 100;
+                    if (dropChance < 50) {
+                        // 인벤토리 공간 확인
+                        if (g_CurrentPlayer.inventoryCount < 20) {
+                            AddItemToInventory(&g_CurrentPlayer, monster->dropItemId);
+                            ItemData droppedItem = LoadItemData(monster->dropItemId);
+                            printf("★ %s을(를) 획득했다!\n", droppedItem.name);
+                        } else {
+                            printf("(인벤토리가 가득 차서 아이템을 획득하지 못했습니다)\n");
+                        }
+                    }
+                }
+                
+                // 추가 드롭: 판매용 잡템 (30% 확률)
+                int junkDropChance = rand() % 100;
+                if (junkDropChance < 30 && g_CurrentPlayer.inventoryCount < 20) {
+                    // 챕터별 판매용 아이템 ID
+                    int junkId = 0;
+                    if (chapter == 1) {
+                        int ch1Items[] = {3, 4, 5};
+                        junkId = ch1Items[rand() % 3];
+                    } else if (chapter == 2) {
+                        int ch2Items[] = {8, 9, 10};
+                        junkId = ch2Items[rand() % 3];
+                    } else if (chapter == 3) {
+                        int ch3Items[] = {13, 14, 15};
+                        junkId = ch3Items[rand() % 3];
+                    } else if (chapter >= 4) {
+                        int ch4Items[] = {18, 19, 20};
+                        junkId = ch4Items[rand() % 3];
+                    }
+                    
+                    if (junkId > 0) {
+                        AddItemToInventory(&g_CurrentPlayer, junkId);
+                        printf("★ 판매용 아이템을 획득했다! (상점에서 판매 가능)\n");
+                    }
+                }
                 
                 Pause();
                 return 1;
@@ -238,7 +278,7 @@ void ShowDungeon() {
     while (g_GameProgress.monstersDefeated < 5) {
         MonsterData monster = LoadRandomMonster(chapter);
         
-        if (!BattleWithMonster(&monster, 0)) {
+        if (!BattleWithMonster(&monster, 0, chapter)) {
             // 패배 또는 도망 - 마을로 복귀
             printf("\n던전을 빠져나왔습니다...\n");
             Pause();
@@ -273,11 +313,40 @@ void ShowDungeon() {
     // 4. 보스 전투
     MonsterData boss = LoadBoss(chapter);
     
-    if (!BattleWithMonster(&boss, 1)) {
+    if (!BattleWithMonster(&boss, 1, chapter)) {
         printf("\n보스에게 패배했습니다...\n");
         Pause();
         return;
     }
+    
+    // 보스 처치 시 장비 드롭 (100% 확률)
+    printf("\n=================================================\n");
+    printf("              [ 특별 보상 획득! ]\n");
+    printf("=================================================\n");
+    
+    // 챕터별 보스 장비 드롭
+    char equipPath[64];
+    int equipSlot = (rand() % 6) + 1;  // 1~6 랜덤 슬롯
+    
+    // 슬롯별 장비 이름
+    const char* slotNames[] = {"", "weapon", "helmet", "armor", "pants", "gloves", "boots"};
+    
+    snprintf(equipPath, sizeof(equipPath), "data/equipment/ch%d_%s.txt", 
+             chapter, slotNames[equipSlot]);
+    
+    FILE* equipFile = fopen(equipPath, "r");
+    if (equipFile) {
+        char equipName[64];
+        fgets(equipName, sizeof(equipName), equipFile);
+        equipName[strcspn(equipName, "\n")] = 0;
+        fclose(equipFile);
+        
+        printf("★★ 보스 전리품: %s ★★\n", equipName);
+        printf("(상점에서 판매하거나 장비 관리에서 착용할 수 있습니다)\n");
+    }
+    
+    printf("=================================================\n");
+    Pause();
     
     // 5. 챕터 클리어
     printf("\n★★★ 챕터 %d 클리어! ★★★\n", chapter);
