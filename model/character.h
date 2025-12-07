@@ -8,7 +8,6 @@ typedef enum {
     JOB_ARCHER = 3     // 궁수
 } JobType;
 
-
 // 저장/로드되는 캐릭터 데이터 구조
 typedef struct {
     char name[32];        // 플레이어 이름
@@ -25,6 +24,7 @@ typedef struct {
 
     int attack;           // 기본 공격력
     int defense;          // 기본 방어력
+    int magicDefense;     // 마법 방어력 추가
 
     // 추가 스탯
     int str;              // 힘 (공격력, HP)
@@ -46,6 +46,11 @@ typedef struct {
     int inventory[20];
     int inventoryCount;
 
+    int currentChapter;   // 현재 챕터 추가
+
 } CharacterData;
+
+// PlayerData는 CharacterData의 별칭
+typedef CharacterData PlayerData;
 
 #endif

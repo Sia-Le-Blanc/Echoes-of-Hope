@@ -6,7 +6,28 @@
 #include "scene_shop.h"
 #include "game.h"
 
-extern int atoi(const char* str);
+void SellItem(PlayerData* player, int inventoryIndex) {
+    if (inventoryIndex < 0 || inventoryIndex >= player->inventoryCount) {
+        printf("\n잘못된 아이템입니다.\n");
+        Pause();
+        return;
+    }
+    
+    int itemId = player->inventory[inventoryIndex];
+    ItemData item = LoadItemData(itemId);
+    int sellPrice = item.price / 2;
+    
+    // 판매 처리
+    player->gold += sellPrice;
+    
+    // 인벤토리에서 제거
+    for (int i = inventoryIndex; i < player->inventoryCount - 1; i++) {
+        player->inventory[i] = player->inventory[i + 1];
+    }
+    player->inventoryCount--;
+    
+    printf("\n'%s'을(를) %dG에 판매했습니다!\n", item.name, sellPrice);
+}
 
 void ShowShop() {
     char input[32];
@@ -92,7 +113,9 @@ void ShowShop() {
             printf("              [ 아이템 판매 ]\n");
             printf("=================================================\n");
             for (int i = 0; i < g_CurrentPlayer.inventoryCount; i++) {
-                printf(" [%d] 아이템 ID: %d\n", i + 1, g_CurrentPlayer.inventory[i]);
+                ItemData item = LoadItemData(g_CurrentPlayer.inventory[i]);
+                int sellPrice = item.price / 2;
+                printf(" [%d] %s - %dG\n", i + 1, item.name, sellPrice);
             }
             printf(" [ 0 ] 취소\n");
             printf("=================================================\n");

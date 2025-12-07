@@ -15,7 +15,7 @@ void ClearInventory(PlayerData* player);
 void UseItem(PlayerData* player, int inventoryIndex);
 
 // 인벤토리 조회
-void ShowInventory(PlayerData* player);
+void ShowInventory();  // 매개변수 제거
 int GetItemCount(PlayerData* player, int itemId);
 int HasItem(PlayerData* player, int itemId);
 

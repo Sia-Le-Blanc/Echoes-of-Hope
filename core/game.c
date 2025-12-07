@@ -1,4 +1,5 @@
 #include "game.h"
+#include "../model/game_progress.h"
 
 // 전역 변수 정의
 SceneType g_CurrentScene = SCENE_TITLE;

@@ -23,6 +23,7 @@ void InitializeCharacter(CharacterData* player, const char* name, JobType job) {
             player->maxMp = 20;
             player->attack = 7;
             player->defense = 5;
+            player->magicDefense = 1;
             player->str = 10;
             player->dex = 5;
             player->intel = 5;
@@ -33,6 +34,7 @@ void InitializeCharacter(CharacterData* player, const char* name, JobType job) {
             player->maxMp = 50;
             player->attack = 0;
             player->defense = 1;
+            player->magicDefense = 5;
             player->str = 5;
             player->dex = 5;
             player->intel = 10;
@@ -43,6 +45,7 @@ void InitializeCharacter(CharacterData* player, const char* name, JobType job) {
             player->maxMp = 30;
             player->attack = 6;
             player->defense = 4;
+            player->magicDefense = 2;
             player->str = 5;
             player->dex = 10;
             player->intel = 5;
@@ -53,6 +56,7 @@ void InitializeCharacter(CharacterData* player, const char* name, JobType job) {
     player->hp = player->maxHp;
     player->mp = player->maxMp;
     player->inventoryCount = 0;
+    player->currentChapter = 1;
     
     // 장비 초기화
     player->weaponId = 0;

@@ -81,8 +81,8 @@ int SavePlayer(const CharacterData* player, const char* playerName) {
     fprintf(fp, "%d %d %d %d\n",
         player->hp, player->maxHp, player->mp, player->maxMp);
     
-    // 공격력/방어력
-    fprintf(fp, "%d %d\n", player->attack, player->defense);
+    // 공격력/방어력/마법방어력
+    fprintf(fp, "%d %d %d\n", player->attack, player->defense, player->magicDefense);
     
     // 추가 스탯
     fprintf(fp, "%d %d %d %d\n",
@@ -99,6 +99,9 @@ int SavePlayer(const CharacterData* player, const char* playerName) {
         fprintf(fp, "%d ", player->inventory[i]);
     }
     fprintf(fp, "\n");
+    
+    // 현재 챕터
+    fprintf(fp, "%d\n", player->currentChapter);
 
     fclose(fp);
     return 1;
@@ -133,8 +136,8 @@ int LoadPlayer(CharacterData* outPlayer, const char* playerName) {
     fscanf(fp, "%d %d %d %d",
         &outPlayer->hp, &outPlayer->maxHp, &outPlayer->mp, &outPlayer->maxMp);
     
-    // 공격력/방어력
-    fscanf(fp, "%d %d", &outPlayer->attack, &outPlayer->defense);
+    // 공격력/방어력/마법방어력
+    fscanf(fp, "%d %d %d", &outPlayer->attack, &outPlayer->defense, &outPlayer->magicDefense);
     
     // 추가 스탯
     fscanf(fp, "%d %d %d %d",
@@ -149,6 +152,11 @@ int LoadPlayer(CharacterData* outPlayer, const char* playerName) {
     fscanf(fp, "%d", &outPlayer->inventoryCount);
     for (int i = 0; i < outPlayer->inventoryCount; i++) {
         fscanf(fp, "%d", &outPlayer->inventory[i]);
+    }
+    
+    // 현재 챕터
+    if (fscanf(fp, "%d", &outPlayer->currentChapter) != 1) {
+        outPlayer->currentChapter = 1; // 기본값
     }
 
     fclose(fp);
