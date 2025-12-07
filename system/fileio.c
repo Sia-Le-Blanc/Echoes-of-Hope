@@ -20,7 +20,7 @@ int CreatePlayerSaveFolder(const char* playerName) {
     char path[64];
     snprintf(path, sizeof(path), "data/%s", playerName);
 #if defined(_WIN32)
-    return _mkdir(path) == 0;
+    return mkdir(path) == 0;
 #else
     return mkdir(path, 0755) == 0;
 #endif
